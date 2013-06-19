@@ -50,37 +50,43 @@ namespace RegisterManifest
                 string originalMessagesFilename;
                 string originalResourcesFilename;
 
-                Console.WriteLine("Uninstalling events...");
-                WEvtUtil.Uninstall(eventsManifestFile);
-                Console.WriteLine("Done.");
+                if (!string.IsNullOrEmpty(eventsManifestFile))
+                {
+                    Console.WriteLine("Update events manifest paths...");
+                    ManifestReader.UpdateEventsManifestFileLoc(eventsManifestFile, targetApp, out originalMessagesFilename, out originalResourcesFilename);
+                    Console.WriteLine("Done.");
 
-                Console.WriteLine("Uninstalling counters...");
-                LodCtr.Uninstall(countersManifestFile, Path.GetDirectoryName(targetApp));
-                Console.WriteLine("Done.");
+                    Console.WriteLine("Uninstalling events...");
+                    WEvtUtil.Uninstall(eventsManifestFile);
+                    Console.WriteLine("Done.");
 
-                Console.WriteLine("Update events manifest paths...");
-                ManifestReader.UpdateEventsManifestFileLoc(eventsManifestFile, targetApp, out originalMessagesFilename, out originalResourcesFilename);
-                Console.WriteLine("Done.");
+                    Console.WriteLine("Installing events...");
+                    WEvtUtil.Install(eventsManifestFile);
+                    Console.WriteLine("Done.");
 
-                Console.WriteLine("Installing events...");
-                WEvtUtil.Install(eventsManifestFile);
-                Console.WriteLine("Done.");
+                    // restored on the assumption that you have this manifest in a repository 
+                    // and don't want to commit the change
+                    Console.WriteLine("Restore events manifest paths...");
+                    ManifestReader.RestoreEventsManifestFileLoc(eventsManifestFile, originalMessagesFilename, originalResourcesFilename);
+                    Console.WriteLine("Done.");
 
-                Console.WriteLine("Installing counters...");
-                LodCtr.Install(countersManifestFile, Path.GetDirectoryName(targetApp));
-                Console.WriteLine("Done.");
+                    WEvtUtil.GetStatus(sourceEvents);
+                    Console.WriteLine("Manifest Events Registration Completed.");
+                }
 
-                Console.WriteLine("Restore events manifest paths...");
-                ManifestReader.RestoreEventsManifestFileLoc(eventsManifestFile, originalMessagesFilename, originalResourcesFilename);
-                Console.WriteLine("Done.");
+                if (!string.IsNullOrEmpty(countersManifestFile))
+                {
+                    Console.WriteLine("Uninstalling counters...");
+                    LodCtr.Uninstall(countersManifestFile, Path.GetDirectoryName(targetApp));
+                    Console.WriteLine("Done.");
 
-                /*
-                WEvtUtil.GetStatus(appSource1);
-                Console.WriteLine("Manifest Events Registration Completed.");
-                
-                WEvtUtil.GetStatus(appSource2);
-                Console.WriteLine("Manifest Counters Registration Completed.");                
-                */
+                    Console.WriteLine("Installing counters...");
+                    LodCtr.Install(countersManifestFile, Path.GetDirectoryName(targetApp));
+                    Console.WriteLine("Done.");
+
+                    WEvtUtil.GetStatus(sourceCounters);
+                    Console.WriteLine("Manifest Counters Registration Completed.");
+                }
             }
             catch (Exception ex)
             {
